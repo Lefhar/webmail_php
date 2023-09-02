@@ -4,7 +4,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-// récupérez les variables
+// Récupérez les variables
 $server = $_ENV['IMAP_SERVER'];
 $username = $_ENV['IMAP_USERNAME'];
 $password = $_ENV['IMAP_PASSWORD'];
@@ -24,6 +24,27 @@ if (isset($data->email_id)) {
                 if ($part->subtype === 'HTML') {
                     $emailContent = imap_fetchbody($mailbox, $emailId, $partNumber + 1);
                     $emailContent = quoted_printable_decode($emailContent);
+
+                    // Utiliser DOMDocument pour analyser le contenu HTML
+                    $dom = new DOMDocument();
+                    @$dom->loadHTML($emailContent);
+
+                    // Rechercher les balises <td> avec align="center"
+                    $tdElements = $dom->getElementsByTagName('td');
+                    foreach ($tdElements as $tdElement) {
+                        if ($tdElement->getAttribute('align') == 'center') {
+                            // Rechercher les liens <a> dans cette balise <td>
+                            $aElements = $tdElement->getElementsByTagName('a');
+                            foreach ($aElements as $aElement) {
+                                // Ajouter l'attribut target="_blank" aux liens
+                                $aElement->setAttribute('target', '_blank');
+                            }
+                        }
+                    }
+
+                    // Récupérer le contenu HTML mis à jour
+                    $emailContent = $dom->saveHTML();
+
                     echo htmlspecialchars_decode($emailContent);
                     exit; // Arrêter le traitement après avoir trouvé le contenu HTML
                 }
@@ -45,6 +66,27 @@ if (isset($data->email_id)) {
         // Si aucun contenu HTML n'a été trouvé, afficher le contenu texte brut
         $emailContent = imap_fetchbody($mailbox, $emailId, 1);
         $emailContent = quoted_printable_decode($emailContent);
+
+        // Utiliser DOMDocument pour analyser le contenu texte brut
+        $dom = new DOMDocument();
+        @$dom->loadHTML($emailContent);
+
+        // Rechercher les balises <td> avec align="center"
+        $tdElements = $dom->getElementsByTagName('td');
+        foreach ($tdElements as $tdElement) {
+            if ($tdElement->getAttribute('align') == 'center') {
+                // Rechercher les liens <a> dans cette balise <td>
+                $aElements = $tdElement->getElementsByTagName('a');
+                foreach ($aElements as $aElement) {
+                    // Ajouter l'attribut target="_blank" aux liens
+                    $aElement->setAttribute('target', '_blank');
+                }
+            }
+        }
+
+        // Récupérer le contenu HTML mis à jour
+        $emailContent = $dom->saveHTML();
+
         echo htmlspecialchars_decode($emailContent);
     } else {
         echo 'Erreur de connexion à la boîte aux lettres.';
@@ -54,4 +96,5 @@ if (isset($data->email_id)) {
 } else {
     echo 'ID de l\'e-mail manquant.';
 }
+
 ?>
