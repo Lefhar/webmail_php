@@ -1,0 +1,9 @@
+{
+  "require": {
+    "ext-imap": "*",
+    "ext-iconv": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "vlucas/phpdotenv": "^5.5"
+  }
+}
