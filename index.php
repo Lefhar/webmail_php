@@ -1,14 +1,5 @@
 <?php
-// load Dotenv
-require_once __DIR__ . '/vendor/autoload.php';
-
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
-// récupérez les variables
-$server = $_ENV['IMAP_SERVER'];
-$username = $_ENV['IMAP_USERNAME'];
-$password = $_ENV['IMAP_PASSWORD'];
+require 'config.php';
 ?><!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -25,8 +16,7 @@ $password = $_ENV['IMAP_PASSWORD'];
                 <thead>
                 <tr>
                     <th>Sujet</th>
-                    <th>De</th>
-                    <th>Date</th>
+
                 </tr>
                 </thead>
                 <tbody>
@@ -39,16 +29,39 @@ $password = $_ENV['IMAP_PASSWORD'];
                     $mails = array_reverse($mails); // Inverser l'ordre des e-mails
                     foreach ($mails as $emailId) {
                         $overview = imap_fetch_overview($mailbox, $emailId);
-                        $subject = quoted_printable_decode($overview[0]->subject);
+                        $subject = imap_utf8($overview[0]->subject);
+
+                        // Vérifiez si la conversion en UTF-8 a réussi
+                        if ($subject === false) {
+                            // Si la conversion échoue, utilisez le sujet brut
+                            $subject = (iconv_mime_decode($overview[0]->subject,0, "ISO-8859-1"));
+                        }
+
+                        $from = imap_utf8($overview[0]->from);
+
+                        // Vérifiez si la conversion en UTF-8 a réussi
+                        if ($from === false) {
+                            // Si la conversion échoue, utilisez le sujet brut
+                            $from = (iconv_mime_decode($overview[0]->from,0, "ISO-8859-1"));
+                        }
+//var_dump($overview[0]);
                         $from = $overview[0]->from;
-                        $date = $overview[0]->date;
-                        $emailId = (int)$emailId;
-                        echo "<tr class='email-row' data-email-id='$emailId'>";
-                        echo "<td class='email-subject'>$subject</td>";
-                        echo "<td class='email-from'>$from</td>";
-                        echo "<td class='email-date'>$date</td>";
-                        echo "</tr>";
-                    }
+                // Récupérez la date au format actuel
+                $dateString = $overview[0]->date;
+
+                // Créez un objet DateTime à partir de la chaîne de date
+                $date = new DateTime($dateString);
+
+                // Définissez la zone horaire
+                $date->setTimezone(new DateTimeZone($_ENV['TIMEZONE']));
+
+                // Formatez la date en français
+                $date = $date->format('d/m/Y H:i:s');
+                        $emailId = (int)$emailId;?>
+                        <tr class='email-row' data-email-id='<?=$emailId;?>'><td class='email-subject'><p>De : <?=$from;?> Le : <?=$date;?></p>
+                                <p>Objet <?=$subject;?></p></td>
+
+                   <?php }
                 } else {
                     echo "<tr><td colspan='3'>Aucun e-mail trouvé.</td></tr>";
                 }

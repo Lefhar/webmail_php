@@ -1,13 +1,5 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
-
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
-// Récupérez les variables
-$server = $_ENV['IMAP_SERVER'];
-$username = $_ENV['IMAP_USERNAME'];
-$password = $_ENV['IMAP_PASSWORD'];
+require 'config.php';
 $input = file_get_contents("php://input");
 $data = json_decode($input);
 if (isset($data->email_id)) {
