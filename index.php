@@ -11,7 +11,7 @@ require 'config.php';
 <div class="container-fluid">
     <h1 class="mt-4">Boîte de réception</h1>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <table class="table table-bordered">
                 <thead>
                 <tr>
@@ -71,7 +71,7 @@ require 'config.php';
                 </tbody>
             </table>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div id="email-content">
                 Sélectionnez un e-mail pour afficher son contenu.
             </div>
@@ -95,6 +95,11 @@ require 'config.php';
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('email-content').innerHTML = data;
+
+                    // Faites défiler la page jusqu'à l'élément 'email-content'
+                    document.getElementById('email-content').scrollIntoView({
+                        behavior: 'smooth'
+                    });
                 })
                 .catch(error => {
                     console.error('Erreur lors de la récupération du contenu de l\'e-mail :', error);
